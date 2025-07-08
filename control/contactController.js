@@ -6,11 +6,9 @@ import Tag from "../models/tagModel.js";
 
 import { startOfWeek, subWeeks, endOfWeek, startOfDay, endOfDay, subDays } from "date-fns";
 
-// Get the date range for the previous week (Monday to Sunday)
 const today = new Date();
-const startOfLastWeek = startOfWeek(subWeeks(today, 1), { weekStartsOn: 1 }); // Monday last week
-const endOfLastWeek = endOfWeek(subWeeks(today, 1), { weekStartsOn: 1 });     // Sunday last week
-
+const startOfLastWeek = startOfWeek(subWeeks(today, 1), { weekStartsOn: 1 }); 
+const endOfLastWeek = endOfWeek(subWeeks(today, 1), { weekStartsOn: 1 });     
 
 export const createContact = async (req, res) => {
   console.log("req.user", req.user)
@@ -31,7 +29,6 @@ export const createContact = async (req, res) => {
       user: req.user.uid,
     });
 
-    // Log activity for contact creation
     await logActivity(
       req.user.uid,
       "CREATE_CONTACT",
@@ -122,7 +119,6 @@ export const getContactById = async (req, res) => {
       return res.status(400).json({ error: "Contact ID is required" });
     }
 
-    // Correct usage:
     const contact = await Contact.findOne({ _id: id, user: req.user.uid });
 
     if (!contact) {
@@ -148,22 +144,18 @@ export const deleteContact = async (req, res) => {
       return res.status(400).json({ error: "Contact ID is required" });
     }
 
-    // First, get the contact to know its tags
     const contactToDelete = await Contact.findOne({ _id: id, user: req.user.uid });
 
     if (!contactToDelete) {
       return res.status(404).json({ error: "Contact not found" });
     }
 
-    // Delete the contact
     const deletedContact = await Contact.findOneAndDelete({ _id: id, user: req.user.uid });
 
-    // Check for orphaned tags and delete them
     if (contactToDelete.tags && contactToDelete.tags.length > 0) {
       await deleteOrphanedTags(contactToDelete.tags, req.user.uid);
     }
 
-    // Log activity for contact deletion
     await logActivity(
       req.user.uid,
       "DELETE_CONTACT",
@@ -199,7 +191,6 @@ export const updateContact = async (req, res) => {
       return res.status(404).json({ error: "Contact not found" });
     }
 
-    // Log activity for contact update
     await logActivity(
       req.user.uid,
       "UPDATE_CONTACT",
@@ -229,13 +220,11 @@ export const deleteMultipleContacts = async (req, res) => {
 
     const objectIds = ids.map(id => new mongoose.Types.ObjectId(id));
 
-    // First, get all contacts to collect their tags
     const contactsToDelete = await Contact.find({
       _id: { $in: objectIds },
       user: req.user.uid
     });
 
-    // Collect all unique tags from contacts being deleted
     const allTagsToCheck = new Set();
     contactsToDelete.forEach(contact => {
       if (contact.tags && contact.tags.length > 0) {
@@ -243,7 +232,6 @@ export const deleteMultipleContacts = async (req, res) => {
       }
     });
 
-    // Delete the contacts
     const result = await Contact.deleteMany({
       _id: { $in: objectIds },
       user: req.user.uid

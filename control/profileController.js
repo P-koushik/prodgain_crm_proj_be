@@ -42,23 +42,19 @@ export const updateProfile = async (req, res) => {
     
     console.log("Update profile request:", { name, email, phone, company, avatar: avatar ? "URL provided" : "No avatar" });
     
-    // Validate required fields
     if (!name || !email) {
       return res.status(400).json({ error: "Name and email are required" });
     }
 
-    // Find existing user first
     const existingUser = await User.findOne({ uid: req.user.uid });
     if (!existingUser) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    let photoUrl = existingUser.photoUrl; // Keep existing avatar by default
+    let photoUrl = existingUser.photoUrl; 
     
-    // Handle avatar upload to Cloudinary if needed
     if (avatar) {
       if (avatar.startsWith("data:")) {
-        // base64 or data URL - upload to Cloudinary
         try {
           const uploadResult = await cloudinary.uploader.upload(avatar, {
             folder: "avatars",
@@ -73,12 +69,10 @@ export const updateProfile = async (req, res) => {
           return res.status(500).json({ error: "Failed to upload image to Cloudinary" });
         }
       } else if (avatar.startsWith("http")) {
-        // Already a URL (from Cloudinary or elsewhere)
         photoUrl = avatar;
       }
     }
 
-    // Update user profile
     const updateFields = { 
       name: name.trim(), 
       email: email.trim(), 
@@ -101,9 +95,6 @@ export const updateProfile = async (req, res) => {
 
     console.log("Profile updated successfully:", updatedUser);
 
-    // Optional: Log activity if you have a logging system
-    // await logActivity(req.user.uid, "UPDATE_PROFILE", `Updated profile for user: ${updatedUser.name}`);
-
     res.status(200).json({
       message: "Profile updated successfully",
       user: {
@@ -118,16 +109,14 @@ export const updateProfile = async (req, res) => {
   } catch (error) {
     console.error("Error updating profile:", error);
     
-    // Handle validation errors
     if (error.name === 'ValidationError') {
       return res.status(400).json({ error: error.message });
     }
     
-    // Handle duplicate key errors
     if (error.code === 11000) {
       return res.status(400).json({ error: "Email already exists" });
     }
     
     res.status(500).json({ error: "Failed to update profile" });
   }
-};  
+};

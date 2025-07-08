@@ -1,11 +1,10 @@
 import ChatMessage from "../models/chatModel.js";
 import axios from "axios";
 
-// Handle chat message - REST API endpoint
 export const handleChatMessage = async (req, res) => {
   try {
     const { message, conversationId } = req.body;
-    const userId = req.user.uid || req.user.id; // Handle both possible formats
+    const userId = req.user.uid || req.user.id; 
     console.log("Message from user:", message);
     console.log("Conversation ID:", conversationId);
     console.log("User ID:", userId);
@@ -56,7 +55,6 @@ export const handleChatMessage = async (req, res) => {
     const aiMessage = response.data.choices[0].message.content;
     console.log("AI response:", aiMessage);
 
-    // Add AI message
     conversation.messages.push({
       sender: "ai",
       message: aiMessage,
@@ -65,11 +63,11 @@ export const handleChatMessage = async (req, res) => {
 
     await conversation.save();
 
-    // Return AI response
     res.json({
       success: true,
       response: aiMessage,
-      conversationId: conversationId
+      conversationId: conversationId,
+      crmDataIncluded: false // You can modify this based on your CRM logic
     });
 
   } catch (error) {
@@ -82,19 +80,16 @@ export const handleChatMessage = async (req, res) => {
   }
 };
 
-// Get chat history - REST API endpoint
 export const getChatHistory = async (req, res) => {
   try {
-    const userId = req.user.uid || req.user.id; // Handle both possible formats
+    const userId = req.user.uid || req.user.id; 
     
-    // Get all conversations for this user
     const conversations = await ChatMessage.find({
       user: userId
-    }).sort({ updatedAt: -1 }); // Sort by most recent
+    }).sort({ updatedAt: -1 }); 
 
     console.log("Fetched conversations:", conversations.length);
 
-    // Return the conversations array directly (not wrapped in conversations object)
     res.json(conversations);
 
   } catch (error) {
@@ -107,7 +102,6 @@ export const getChatHistory = async (req, res) => {
   }
 };
 
-// Get specific conversation - REST API endpoint
 export const getConversation = async (req, res) => {
   try {
     const { conversationId } = req.params;
@@ -140,7 +134,6 @@ export const getConversation = async (req, res) => {
   }
 };
 
-// Delete conversation - REST API endpoint
 export const deleteConversation = async (req, res) => {
   try {
     const { conversationId } = req.params;
@@ -173,7 +166,6 @@ export const deleteConversation = async (req, res) => {
   }
 };
 
-// Update conversation title - REST API endpoint
 export const updateConversationTitle = async (req, res) => {
   try {
     const { conversationId } = req.params;
