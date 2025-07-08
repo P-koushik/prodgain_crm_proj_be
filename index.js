@@ -39,7 +39,7 @@ mongoose.connect(process.env.MONGO_URI, {
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: process.env.PRODUCTION_URL,
+  origin:  process.env.PRODUCTION_URL,
   credentials: true
 }));
 
